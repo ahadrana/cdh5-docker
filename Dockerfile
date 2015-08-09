@@ -53,6 +53,8 @@ RUN chmod +x /usr/bin/run-hadoop.sh
 #fix some terminal preferences 
 RUN echo export TERM=xterm >> /etc/bash.bashrc
 
+RUN wget -O /cdh5-docker-support.jar https://github.com/ahadrana/cdh5-docker/releases/download/1.0.0-SNAPSHOT/cdh5-docker-support-1.0.0-SNAPSHOT.jar
+
 # NameNode (HDFS)
 EXPOSE 8020 50070
 

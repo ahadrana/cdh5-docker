@@ -107,7 +107,7 @@ public class DirectoryUtils {
     runCmd(shell,"-chown","yarn:mapred","/var/log/hadoop-yarn");
     runCmd(shell,"-mkdir","-p","/user/hdfs");
     runCmd(shell,"-chown","hdfs","/user/hdfs");
-    runCmd(shell,"-mkdir","/hbase");
+    runCmd(shell,"-mkdir","-p","/hbase");
     runCmd(shell,"-chown","hbase","/hbase");
     
   }
