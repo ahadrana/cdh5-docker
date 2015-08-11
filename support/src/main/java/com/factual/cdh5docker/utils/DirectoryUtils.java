@@ -97,9 +97,6 @@ public class DirectoryUtils {
     // get the default file system 
     FsShell shell = new FsShell(conf);
 
-    runCmd(shell,"-mkdir","-p", "/tmp/hadoop-yarn/staging/history/done_intermediate");
-    
-    
     runCmd(shell,"-mkdir","-p","/tmp/hadoop-yarn/staging/history/done_intermediate");
     runCmd(shell,"-chown","-R","mapred:mapred","/tmp/hadoop-yarn/staging");
     runCmd(shell,"-chmod","-R","1777","/tmp");
