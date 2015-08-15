@@ -13,8 +13,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <hbase.version>1.0.0-cdh5.4.0</hbase.version>
-    <hadoop.version>2.6.0-cdh5.4.0</hadoop.version>
+    <hbase.version>1.0.0-cdh5.4.4</hbase.version>
+    <hadoop.version>2.6.0-cdh5.4.4</hadoop.version>
     <artifactIdProp>project-info.properties</artifactIdProp>
     <versionInfoProp>build-info.properties</versionInfoProp>
   </properties>
@@ -32,6 +32,41 @@
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
     </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <classifier>tests</classifier>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${hadoop.version}</version>
+      <classifier>tests</classifier>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-minikdc</artifactId>
+      <version>${hadoop.version}</version>
+      <exclusions>
+        <exclusion>
+          <groupId>org.apache.directory.jdbm</groupId>
+          <artifactId>apacheds-jdbm1</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.directory.server</groupId>
+      <artifactId>apacheds-jdbm</artifactId>
+      <version>2.0.0-M5</version>
+    </dependency>
+
   </dependencies>
 
   <build>
@@ -85,36 +120,99 @@
           </execution>
         </executions>
       </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-shade-plugin</artifactId>
-        <version>2.4</version>
-        <executions>
-          <execution>
-            <phase>package</phase>
-            <goals>
-              <goal>shade</goal>
-            </goals>
-            <configuration>
-            <minimizeJar>true</minimizeJar>
+
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-shade-plugin</artifactId>
+      <version>2.4</version>
+      <executions>
+         <!-- Run shade goal on package phase -->
+        <execution>
+      <phase>package</phase>
+      <goals>
+        <goal>shade</goal>
+      </goals>
+      <configuration>
               <artifactSet>
                 <includes>
-                  <include>com.google.guava:guava</include>
+                  <include>*:antlr</include>
+                  <include>*:apacheds-core</include>
+                  <include>*:apacheds-core-api</include>
+                  <include>*:apacheds-core-avl</include>
+                  <include>*:apacheds-core-constants</include>
+                  <include>*:apacheds-core-shared</include>
+                  <include>*:apacheds-i18n</include>
+                  <include>*:apacheds-interceptor-kerberos</include>
+                  <include>*:apacheds-interceptors-admin</include>
+                  <include>*:apacheds-interceptors-authn</include>
+                  <include>*:apacheds-interceptors-authz</include>
+                  <include>*:apacheds-interceptors-changelog</include>
+                  <include>*:apacheds-interceptors-collective</include>
+                  <include>*:apacheds-interceptors-event</include>
+                  <include>*:apacheds-interceptors-exception</include>
+                  <include>*:apacheds-interceptors-journal</include>
+                  <include>*:apacheds-interceptors-normalization</include>
+                  <include>*:apacheds-interceptors-operational</include>
+                  <include>*:apacheds-interceptors-referral</include>
+                  <include>*:apacheds-interceptors-schema</include>
+                  <include>*:apacheds-interceptors-subtree</include>
+                  <include>*:apacheds-interceptors-trigger</include>
+                  <include>*:apacheds-jdbm</include>
+                  <include>*:apacheds-jdbm-partition</include>
+                  <include>*:apacheds-ldif-partition</include>
+                  <include>*:apacheds-mavibot-partition</include>
+                  <include>*:apacheds-protocol-kerberos</include>
+                  <include>*:apacheds-protocol-ldap</include>
+                  <include>*:apacheds-protocol-shared</include>
+                  <include>*:apacheds-xdbm-partition</include>
+                  <include>org.apache.directory.server:apacheds-kerberos-codec</include>
+                  <include>*:api-all</include>
+                  <include>*:api-asn1-api</include>
+                  <include>*:api-asn1-ber</include>
+                  <include>*:api-i18n</include>
+                  <include>*:api-util</include>
+                  <include>*:api-ldap-client-api</include>
+                  <include>*:api-ldap-codec-core</include>
+                  <include>*:api-ldap-extras-aci</include>
+                  <include>*:api-ldap-extras-codec</include>
+                  <include>*:api-ldap-extras-codec-api</include>
+                  <include>*:api-ldap-extras-sp</include>
+                  <include>*:api-ldap-extras-trigger</include>
+                  <include>*:api-ldap-extras-util</include>
+                  <include>*:api-ldap-model</include>
+                  <include>*:bcprov-jdk15</include>
+                  <include>*:commons-pool</include>
+                  <include>*:ehcache-core</include>
+                  <include>*:hadoop-common-tests</include>
+                  <include>*:hadoop-hdfs-tests</include>
+                  <include>*:hadoop-minikdc</include>
+                  <include>*:mavibot</include>
+                  <include>org.apache.mina:mina-core</include>
+                  
                 </includes>
               </artifactSet>
+              <filters>
               <filter>
                 <artifact>*:*</artifact>
                 <excludes>
+
+                  <exclude>META-INF/BCKEY.SF</exclude>
                   <exclude>META-INF/*.SF</exclude> 
                   <exclude>META-INF/*.DSA</exclude> 
                   <exclude>META-INF/*.RSA</exclude> 
+                  <exclude>META-INF/*.MF</exclude> 
                   <exclude>META-INF/ECLIPSE*</exclude> 
+                  <exclude>META-INF/MANIFEST.MF</exclude>
                 </excludes>
               </filter>
-            </configuration>
+            </filters>
+      </configuration>
           </execution>
-        </executions>
-      </plugin>
+      </executions>
+    </plugin>
+
+
+
       <plugin>
         <groupId>org.apache.hadoop</groupId>
         <artifactId>hadoop-maven-plugins</artifactId>
@@ -136,7 +234,54 @@
             </configuration>
           </execution>
         </executions>
-      </plugin>      
+      </plugin>
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-dependency-plugin</artifactId>
+      <version>2.6</version>
+      <executions>
+       <execution>
+        <id>build-classpath</id>
+        <phase>prepare-package</phase>
+        <goals>
+          <goal>build-classpath</goal>
+        </goals>
+         <configuration>
+            <prefix>/libs</prefix>
+            <stripClassifier>true</stripClassifier>
+            <outputFile>target/lib/classpath.txt</outputFile>
+            <mdep.outputFile>classpath.txt</mdep.outputFile>
+         </configuration>
+       </execution>
+
+        <execution>
+          <id>copy-dependencies</id>
+          <phase>prepare-package</phase>
+          <goals>
+            <goal>copy-dependencies</goal>
+          </goals>
+          <configuration>
+            <outputDirectory>target/lib</outputDirectory>
+            <overWriteIfNewer>true</overWriteIfNewer>
+            <excludeGroupIds>
+            </excludeGroupIds>
+          </configuration>
+        </execution>
+        <!--
+        <execution>
+          <phase>generate-sources</phase>
+          <goals>
+            <goal>sources</goal>
+          </goals>
+        </execution>
+        -->
+      </executions>
+      <configuration>
+        <verbose>true</verbose>
+        <detail>true</detail>
+        <outputDirectory>${project.build.directory}</outputDirectory>
+      </configuration>
+    </plugin>            
     </plugins>
   </build>
   <pluginRepositories>
