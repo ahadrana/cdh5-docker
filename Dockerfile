@@ -92,7 +92,7 @@ RUN chmod +x /usr/bin/killServices.sh
 RUN echo export TERM=xterm >> /etc/bash.bashrc
 
 
-RUN wget -O /cdh5-docker-support.jar https://github.com/ahadrana/cdh5-docker/releases/download/1.0.2/cdh5-docker-support-1.0.2-SNAPSHOT.jar
+RUN wget -O /cdh5-docker-support.jar https://github.com/ahadrana/cdh5-docker/releases/download/1.0.3/cdh5-docker-support-1.0.3-SNAPSHOT.jar
 #COPY ./support/target/cdh5-docker-support-1.0.1-SNAPSHOT.jar /cdh5-docker-support.jar
 
 # NameNode (HDFS)
