@@ -44,4 +44,34 @@
     <value>*</value>  
   </property> 
 
+
+  <!-- impersonation, for letting root & test-service  create directories in tests when needed -->
+  <property>
+    <name>hadoop.proxyuser.root.groups</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.root.hosts</name>
+    <value>*</value>
+  </property>
+
+  <property>
+    <name>hadoop.proxyuser.test-service-setuid.groups</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.test-service-setuid.hosts</name>
+    <value>*</value>
+  </property>
+
+  <!-- impersonation, yarn users is running events, and will launch mapreduce jobs on behalf of user for merge -->
+  <property>
+    <name>hadoop.proxyuser.yarn.hosts</name>
+    <value>*</value>
+  </property>
+  <property>
+    <name>hadoop.proxyuser.yarn.groups</name>
+    <value>*</value>
+  </property>
+
 </configuration>
