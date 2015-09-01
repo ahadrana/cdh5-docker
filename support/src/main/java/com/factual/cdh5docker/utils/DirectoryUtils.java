@@ -106,6 +106,10 @@ public class DirectoryUtils {
     runCmd(shell,"-chown","hdfs","/user/hdfs");
     runCmd(shell,"-mkdir","-p","/hbase");
     runCmd(shell,"-chown","hbase","/hbase");
+    runCmd(shell,"-mkdir","-p","/user/test-user");
+    runCmd(shell,"-chown","test-user","/user/test-user");
+    runCmd(shell,"-mkdir","-p","/user/test-service");
+    runCmd(shell,"-chown","test-service","/user/test-service");
     
   }
   
