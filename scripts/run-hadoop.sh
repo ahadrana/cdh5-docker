@@ -1,30 +1,15 @@
 #!/bin/bash
 
-echo "starting namenode"
-service hadoop-hdfs-namenode start & 
-echo "starting datanode"
-service hadoop-hdfs-datanode start & 
-
-wait
-
-echo "setup directories"
-
-sudo -u hdfs hadoop jar /cdh5-docker-support.jar com.factual.cdh5docker.utils.DirectoryUtils -cmd createServiceDirs
+echo "starting kdc"
+#bash -c "nohup java -cp $(hadoop classpath):/cdh5-docker-support.jar com.factual.cdh5docker.utils.KDCLauncher &> /var/log/kerberos.log &"
+/etc/init.d/krb5-kdc start
+/etc/init.d/krb5-admin-server start
+/usr/bin/init_krb.sh
 
 echo "starting yarn"
-service hadoop-yarn-resourcemanager start & 
-service hadoop-yarn-nodemanager start &
-service hadoop-mapreduce-historyserver start & 
-echo "starting hbase ... "
-service hbase-master start & 
-#next bring up kafka 
-/etc/init.d/init-kafka.sh start & 
-
-
-echo "waiting for everything to come up"
-wait
-echo "done waiting"
-sleep 1
+#service hadoop-yarn-resourcemanager start & 
+#service hadoop-yarn-nodemanager start &
+#service hadoop-mapreduce-historyserver start & 
 
 # tail log directory
-tail -n 1000 -f /var/log/hadoop-*/*.out
+tail -f /dev/null

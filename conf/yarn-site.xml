@@ -3,6 +3,35 @@
 
 <configuration>
   	
+  <!-- ResourceManager security configs -->
+  <property>
+    <name>yarn.resourcemanager.keytab</name>
+    <value>/etc/hadoop/conf/yarn.keytab</value> <!-- path to the YARN keytab -->
+  </property>
+  <property>
+    <name>yarn.resourcemanager.principal</name>
+    <value>yarn/localhost@EXAMPLE.COM</value>
+  </property>
+
+  <!-- NodeManager security configs -->
+  <property>
+    <name>yarn.nodemanager.keytab</name>
+    <value>/etc/hadoop/conf/yarn.keytab</value> <!-- path to the YARN keytab -->
+  </property>
+  <property>
+    <name>yarn.nodemanager.principal</name>
+    <value>yarn/localhost@EXAMPLE.COM</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.container-executor.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor</value>
+  </property>
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.group</name>
+    <value>yarn</value>
+  </property>
+
+
   <property>
     <name>yarn.nodemanager.aux-services</name>
     <value>mapreduce_shuffle</value>
@@ -15,7 +44,7 @@
 
   <property>
     <name>yarn.log-aggregation-enable</name>
-    <value>true</value>
+    <value>false</value>
   </property>
 
   <property>
@@ -52,4 +81,10 @@
         $HADOOP_YARN_HOME/*,$HADOOP_YARN_HOME/lib/*
      </value>
   </property>
+  
+  <property>
+    <name>yarn.linux-container-executor.path</name>
+    <value>/usr/lib/hadoop-yarn/bin/container-executor</value>
+  </property>
+
 </configuration>

@@ -5,7 +5,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.factual</groupId>
   <artifactId>cdh5-docker-support</artifactId>
-  <version>1.0.1-SNAPSHOT</version>
+  <version>1.0.2-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>cdh5-docker-support</name>
@@ -49,22 +49,6 @@
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
       <version>${hadoop.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-minikdc</artifactId>
-      <version>${hadoop.version}</version>
-      <exclusions>
-        <exclusion>
-          <groupId>org.apache.directory.jdbm</groupId>
-          <artifactId>apacheds-jdbm1</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.directory.server</groupId>
-      <artifactId>apacheds-jdbm</artifactId>
-      <version>2.0.0-M5</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hbase</groupId>
@@ -139,63 +123,20 @@
       <configuration>
               <artifactSet>
                 <includes>
-                  <include>*:antlr</include>
-                  <include>*:apacheds-core</include>
-                  <include>*:apacheds-core-api</include>
-                  <include>*:apacheds-core-avl</include>
-                  <include>*:apacheds-core-constants</include>
-                  <include>*:apacheds-core-shared</include>
-                  <include>*:apacheds-i18n</include>
-                  <include>*:apacheds-interceptor-kerberos</include>
-                  <include>*:apacheds-interceptors-admin</include>
-                  <include>*:apacheds-interceptors-authn</include>
-                  <include>*:apacheds-interceptors-authz</include>
-                  <include>*:apacheds-interceptors-changelog</include>
-                  <include>*:apacheds-interceptors-collective</include>
-                  <include>*:apacheds-interceptors-event</include>
-                  <include>*:apacheds-interceptors-exception</include>
-                  <include>*:apacheds-interceptors-journal</include>
-                  <include>*:apacheds-interceptors-normalization</include>
-                  <include>*:apacheds-interceptors-operational</include>
-                  <include>*:apacheds-interceptors-referral</include>
-                  <include>*:apacheds-interceptors-schema</include>
-                  <include>*:apacheds-interceptors-subtree</include>
-                  <include>*:apacheds-interceptors-trigger</include>
-                  <include>*:apacheds-jdbm</include>
-                  <include>*:apacheds-jdbm-partition</include>
-                  <include>*:apacheds-ldif-partition</include>
-                  <include>*:apacheds-mavibot-partition</include>
-                  <include>*:apacheds-protocol-kerberos</include>
-                  <include>*:apacheds-protocol-ldap</include>
-                  <include>*:apacheds-protocol-shared</include>
-                  <include>*:apacheds-xdbm-partition</include>
-                  <include>org.apache.directory.server:apacheds-kerberos-codec</include>
-                  <include>*:api-all</include>
-                  <include>*:api-asn1-api</include>
-                  <include>*:api-asn1-ber</include>
-                  <include>*:api-i18n</include>
-                  <include>*:api-util</include>
-                  <include>*:api-ldap-client-api</include>
-                  <include>*:api-ldap-codec-core</include>
-                  <include>*:api-ldap-extras-aci</include>
-                  <include>*:api-ldap-extras-codec</include>
-                  <include>*:api-ldap-extras-codec-api</include>
-                  <include>*:api-ldap-extras-sp</include>
-                  <include>*:api-ldap-extras-trigger</include>
-                  <include>*:api-ldap-extras-util</include>
-                  <include>*:api-ldap-model</include>
-                  <include>*:bcprov-jdk15</include>
-                  <include>*:commons-pool</include>
-                  <include>*:ehcache-core</include>
-                  <include>*:hadoop-common-tests</include>
-                  <include>*:hadoop-hdfs-tests</include>
-                  <include>*:hadoop-minikdc</include>
-                  <include>*:mavibot</include>
-                  <include>org.apache.mina:mina-core</include>
                   <include>org.apache.hbase:hbase-client</include>
                   <include>org.apache.hbase:hbase-annotations</include>
                   <include>org.apache.hbase:hbase-common</include>
+                  <include>org.apache.hadoop:hadoop-core</include>
+                  <include>tomcat:jasper-compiler</include>
+                  <include>hsqldb:hsqldb</include>
+                  <include>org.eclipse.jdt:core</include>
                   <include>org.apache.hbase:hbase-protocol</include>
+                  <include>org.apache.htrace:htrace-core</include>
+                  <include>org.jruby.jcodings:jcodings</include>
+                  <include>org.jruby.joni:joni</include>
+                  <include>com.github.stephenc.findbugs:findbugs-annotations</include>
+                  <include>junit:junit</include>
+                  <include>org.hamcrest:hamcrest-core</include>
                 </includes>
               </artifactSet>
               <filters>
@@ -245,7 +186,7 @@
     <plugin>
       <groupId>org.apache.maven.plugins</groupId>
       <artifactId>maven-dependency-plugin</artifactId>
-      <version>2.6</version>
+      <version>2.10</version>
       <executions>
        <execution>
         <id>build-classpath</id>
