@@ -71,6 +71,10 @@ COPY data/principal.ok /etc/krb5kdc/principal.ok
 COPY data/stash /etc/krb5kdc/stash
 COPY scripts/init_krb.sh /usr/bin/init_krb.sh
 
+#some ZK stuff 
+COPY conf/test-service-zk-jaas.conf /test-service-zk-jaas.conf
+COPY conf/test-user-zk-jaas.conf /test-user-zk-jaas.conf
+
 #Format HDFS
 #RUN sudo -u hdfs hdfs namenode -format
 

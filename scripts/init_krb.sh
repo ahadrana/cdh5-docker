@@ -3,8 +3,6 @@
 # add the test users ... 
 useradd -m -U test-user
 useradd -m -U test-service
-# add kafka user ... 
-useradd -m -U kafka
 
 # add principals
 kadmin.local -q "addprinc -randkey hdfs/localhost@EXAMPLE.COM"
@@ -23,7 +21,9 @@ kadmin.local -q "xst -norandkey -k hbase.keytab hbase/localhost@EXAMPLE.COM HTTP
 kadmin.local -q "xst -norandkey -k HTTP.keytab HTTP/localhost@EXAMPLE.COM"
 kadmin.local -q "xst -norandkey -k zookeeper.keytab zookeeper/localhost@EXAMPLE.COM HTTP/localhost@EXAMPLE.COM"
 kadmin.local -q "xst -norandkey -k test-user.keytab test-user/localhost@EXAMPLE.COM"
+kadmin.local -q "xst -norandkey -k test-service.keytab test-service/localhost@EXAMPLE.COM"
 kadmin.local -q "xst -norandkey -k root.keytab root/localhost@EXAMPLE.COM"
+
 # fix ownership 
 chown hdfs hdfs.keytab
 chown mapred mapred.keytab
@@ -31,6 +31,7 @@ chown yarn yarn.keytab
 chown hbase hbase.keytab
 chown zookeeper zookeeper.keytab
 chown test-user test-user.keytab
+chown test-service test-user.keytab
 chown root root.keytab
 # move them 
 mv hdfs.keytab /etc/hadoop/conf
