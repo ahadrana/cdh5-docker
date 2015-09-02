@@ -54,6 +54,7 @@ COPY conf/jaas.conf /etc/zookeeper/conf/jaas.conf
 COPY conf/java.env /etc/zookeeper/conf/java.env
 COPY conf/hbase-zk-jaas.conf /etc/hbase/conf/zk-jaas.conf
 COPY conf/container-executor.cfg /etc/hadoop/conf/container-executor.cfg
+RUN  chmod 644 /etc/hadoop/conf/container-executor.cfg
 
 #Add some hbase env variables... 
 RUN echo 'export HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config=/etc/hbase/conf/zk-jaas.conf"' >> /etc/hbase/conf/hbase-env.sh
