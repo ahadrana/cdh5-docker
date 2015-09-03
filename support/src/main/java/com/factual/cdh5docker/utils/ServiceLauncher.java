@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -66,12 +67,18 @@ public class ServiceLauncher {
   
   public static class LaunchConfig {
     
-    public LaunchConfig(Semaphore shutdownSemaphore) { 
-      this.shutdownSemaphore = shutdownSemaphore;
+    public LaunchConfig() { 
+
     }
     
-    CountDownLatch readyLatch;
-    public final Semaphore shutdownSemaphore;
+    // we need a total worker thread count 
+    int threadCount;
+    // we use this semaphore to track completed worker threads   
+    final Semaphore completedThreadSemaphore = new Semaphore(0);
+    // ready latch triggered when all services are in a stable state 
+    public final CountDownLatch readyLatch = new CountDownLatch(1);
+    // shutdown latch .. used to indicate / trigger shutdown 
+    public final CountDownLatch shutdownLatch = new CountDownLatch(1);
     
     public static final int DEFAULT_PROCESS_MEMORY_MB = 384;
     // NN (HDFS) Memory in MB 
@@ -105,8 +112,7 @@ public class ServiceLauncher {
     
     
     final LaunchResult result = new LaunchResult();
-    result.readyLatch = new CountDownLatch(1);
-    launchConfig.readyLatch = result.readyLatch;
+    result.readyLatch = launchConfig.readyLatch;
     
     result.launchThread = new Thread(new Runnable() {
 
@@ -129,7 +135,7 @@ public class ServiceLauncher {
             CountDownLatch hbaseReadyLatch = new CountDownLatch(1);
 
   
-            startLoginThread(loginLatch);
+            startLoginThread(launchConfig,loginLatch);
             
             AtomicInteger exitCodes[] = new AtomicInteger[2];
             for (int i=0;i<2;++i) 
@@ -138,9 +144,10 @@ public class ServiceLauncher {
             launchSecureZookeeper(launchConfig);
             launchHDFSThread(Role.NAMENODE, launchConfig, exitCodes[0]);
             launchHDFSThread(Role.DATANODE, launchConfig, exitCodes[1]);
-            launchSecureHBase(HBASEROLE.MASTER,launchConfig);
-            launchSecureHBase(HBASEROLE.REGIONSERVER,launchConfig);
-            launchHBaseReadyStateThread(hbaseReadyLatch);
+            //Thread.currentThread().sleep(7000);
+            launchSecureHBase(HBASEROLE.REGIONSERVER,launchConfig,hbaseReadyLatch);
+            launchSecureHBase(HBASEROLE.MASTER,launchConfig,hbaseReadyLatch);
+            launchHBaseReadyStateThread(launchConfig,hbaseReadyLatch);
 
 
             long loginWaitTimeStart = System.currentTimeMillis();
@@ -161,8 +168,7 @@ public class ServiceLauncher {
             } catch (IOException e) {
               LOG.info(StringUtils.stringifyException(e));
             }
-            
-            
+
             launchKafka(launchConfig);
             launchSecureYARN(YARNROLE.RESOURCEMANAGER,launchConfig);
             launchSecureYARN(YARNROLE.NODEMANAGER,launchConfig);
@@ -180,7 +186,7 @@ public class ServiceLauncher {
             launchConfig.readyLatch.countDown();
 
             LOG.info("Waiting for someone to trigger exit");
-            launchConfig.shutdownSemaphore.acquireUninterruptibly(1);
+            launchConfig.shutdownLatch.await();
             LOG.info("Exit triggered. Leaving main thread.");
             
           }
@@ -193,6 +199,18 @@ public class ServiceLauncher {
           // no matter what, before exiting trigger ready latch 
           // it may have been triggered above, in which case this is a noop.
           launchConfig.readyLatch.countDown();
+          LOG.info("Exiting ... Killing all services");
+          // kill all services upon exit 
+          killServices();
+          // wait for all threads to die 
+          
+          int remainingThreads = launchConfig.threadCount;
+          while (remainingThreads != 0) {
+            LOG.info("Waiting for " + remainingThreads + " threads to die" );
+            launchConfig.completedThreadSemaphore.acquireUninterruptibly();
+            remainingThreads--;
+          }
+          LOG.info("All worker threads dead. Exiting for good");
         }
       } 
       
@@ -265,7 +283,8 @@ private static boolean isRestrictedCryptography() {
     formatter.printHelp("general options are:", options);
   }
 
-  static void launchKafka(final LaunchConfig launchConfig) { 
+  static void launchKafka(final LaunchConfig launchConfig) {
+    launchConfig.threadCount++;
     Thread thread = new Thread(new Runnable() {
 
       @Override
@@ -293,15 +312,20 @@ private static boolean isRestrictedCryptography() {
         }
         finally { 
           LOG.info("Kafka Server Exited");
-          launchConfig.shutdownSemaphore.release();
+          launchConfig.shutdownLatch.countDown();
+          // increment completed thread semaphore
+          launchConfig.completedThreadSemaphore.release();
         }        
       }
     });
     thread.start();
+    
   }
   
   
   static void launchSecureZookeeper(final LaunchConfig launchConfig) {
+    
+    launchConfig.threadCount++;
     
     Thread thread = new Thread(new Runnable() {
 
@@ -352,7 +376,10 @@ private static boolean isRestrictedCryptography() {
         }
         finally { 
           LOG.info("Zookeeper Server Exited");
-          launchConfig.shutdownSemaphore.release();
+          launchConfig.shutdownLatch.countDown();
+          // increment completed thread semaphore
+          launchConfig.completedThreadSemaphore.release();
+
         }
       } 
       
@@ -366,6 +393,8 @@ private static boolean isRestrictedCryptography() {
   }
   
   static void launchSecureYARN(final YARNROLE role, final LaunchConfig launchConfig) {
+    launchConfig.threadCount++;
+    
     Thread thread = new Thread(new Runnable() {
 
       @Override
@@ -407,7 +436,9 @@ private static boolean isRestrictedCryptography() {
         }
         finally { 
           LOG.info("YARN(" + role+") Exited");
-          launchConfig.shutdownSemaphore.release();
+          launchConfig.shutdownLatch.countDown();
+          // increment completed thread semaphore
+          launchConfig.completedThreadSemaphore.release();
         }
       } 
       
@@ -423,7 +454,9 @@ private static boolean isRestrictedCryptography() {
   }
   
   
-  static void launchSecureHBase(final HBASEROLE role, final LaunchConfig launchConfig) {
+  static void launchSecureHBase(final HBASEROLE role, final LaunchConfig launchConfig,final CountDownLatch hbaseReadyLatch) {
+    
+    launchConfig.threadCount++;
     
     Thread thread = new Thread(new Runnable() {
 
@@ -466,7 +499,12 @@ private static boolean isRestrictedCryptography() {
         }
         finally { 
           LOG.info("HBASE(" + role+") Exited");
-          launchConfig.shutdownSemaphore.release();
+          launchConfig.shutdownLatch.countDown();
+          // also count down ready latch since a dead hbase will never
+          // be ready :-(
+          hbaseReadyLatch.countDown();
+          // increment completed thread semaphore
+          launchConfig.completedThreadSemaphore.release();
         }
       } 
       
@@ -534,6 +572,7 @@ private static boolean isRestrictedCryptography() {
   }
   
   static void launchHDFSThread(final Role role,final LaunchConfig launchConfig, final AtomicInteger returnCode) { 
+    launchConfig.threadCount++;
     Thread thread = new Thread(new Runnable() {
 
       @Override
@@ -543,7 +582,9 @@ private static boolean isRestrictedCryptography() {
           returnCode.set(launchHDFS(role, launchConfig));
         }
         finally { 
-          launchConfig.shutdownSemaphore.release();
+          launchConfig.shutdownLatch.countDown();
+          // increment completed thread semaphore
+          launchConfig.completedThreadSemaphore.release();
         }
       } 
       
@@ -586,7 +627,7 @@ private static boolean isRestrictedCryptography() {
           break;
         }
         catch (ConnectException e) { 
-          //System.out.print("Failed to Connect");
+          //LOG.info("Failed to Connect to Namenode");
         }
         try {
           //LOG.info("Waiting for cluster to become active");
@@ -603,7 +644,8 @@ private static boolean isRestrictedCryptography() {
     }
   }
   
-  static void launchHBaseReadyStateThread(final CountDownLatch latch) {
+  static void launchHBaseReadyStateThread(final LaunchConfig launchConfig, final CountDownLatch latch) {
+    launchConfig.threadCount++;
     Thread thread = new Thread(new Runnable() {
 
       @Override
@@ -644,20 +686,32 @@ private static boolean isRestrictedCryptography() {
             catch (IOException e) { 
               LOG.info("waitForHBaseThread threw Exception:" + StringUtils.stringifyException(e));
             }
+            try {
+              // if someone triggered a shutdown, then exit immediately
+              if (launchConfig.shutdownLatch.await(1, TimeUnit.MILLISECONDS) == true){ 
+                break;
+              }
+            } catch (InterruptedException e) {
+              // TODO Auto-generated catch block
+              e.printStackTrace();
+            }
             
           }
         }
         finally { 
           latch.countDown();
+          // increment completed thread semaphore
+          launchConfig.completedThreadSemaphore.release();
         }
-        
       } 
-      
     });
     thread.start();
   }
 
-  static void startLoginThread(final CountDownLatch loginLatch) {
+  static void startLoginThread(final LaunchConfig launchConfig, final CountDownLatch loginLatch) {
+    
+    launchConfig.threadCount++;
+    
     Thread thread = new Thread(new Runnable(){
 
       @Override
@@ -669,7 +723,10 @@ private static boolean isRestrictedCryptography() {
           LOG.info("Login Failed With:" + StringUtils.stringifyException(e));
         }
         finally { 
+          // trigger login latch 
           loginLatch.countDown();
+          // and increment completed thread semaphore
+          launchConfig.completedThreadSemaphore.release();
         }
       }});
     
@@ -693,7 +750,7 @@ private static boolean isRestrictedCryptography() {
 
     try {
       CommandLine commandLine = parser.parse(opts, args, true);
-      LaunchConfig launchConfig = new LaunchConfig(new Semaphore(0));
+      LaunchConfig launchConfig = new LaunchConfig();
       
       if (commandLine.hasOption(COMMAND_NN_MEMORY)) { 
         launchConfig.NNMemoryMB = Integer.parseInt(commandLine.getOptionValue(COMMAND_NN_MEMORY));
@@ -711,8 +768,8 @@ private static boolean isRestrictedCryptography() {
       }
       
       if (!launchResult.launchStatus.get()) { 
-        LOG.error("Failed to successfully launch services. Triggering shutdown semaphore!");
-        launchConfig.shutdownSemaphore.release();
+        LOG.error("Failed to successfully launch services. Triggering shutdown latch");
+        launchConfig.shutdownLatch.countDown();
       }
       LOG.info("Waiting for Launch Thread to Exit");
       try {
@@ -722,9 +779,6 @@ private static boolean isRestrictedCryptography() {
         e.printStackTrace();
       }
       LOG.info("Waiting for Launch Thread to Exited");
-      
-      // kill all services before exit
-      killServices();
       
       System.exit(0);
 
