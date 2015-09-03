@@ -11,7 +11,7 @@ echo "starting yarn"
 #service hadoop-yarn-nodemanager start &
 #service hadoop-mapreduce-historyserver start & 
 
-hadoop jar cdh5-docker-support.jar com.factual.cdh5docker.utils.ServiceLauncher > /var/log/launcher.log & 
+hadoop jar cdh5-docker-support.jar com.factual.cdh5docker.utils.RestServer -p 8999 &> /var/log/launcher.log
 
 # tail log directory
 tail -f /dev/null
