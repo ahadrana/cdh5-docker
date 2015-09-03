@@ -70,4 +70,8 @@
 		<name>hbase.master.wait.on.regionservers.maxtostart</name>
 		<value>1</value>
 	</property>
+	<property>
+		<name>hbase.rootdir.perms</name>
+		<value>711</value>
+	</property>
 </configuration>
