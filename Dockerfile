@@ -96,6 +96,11 @@ RUN echo export TERM=xterm >> /etc/bash.bashrc
 RUN wget -O /cdh5-docker-support.jar https://github.com/ahadrana/cdh5-docker/releases/download/1.0.4/cdh5-docker-support-1.0.4-SNAPSHOT.jar
 #COPY ./support/target/cdh5-docker-support-1.0.*-SNAPSHOT.jar /cdh5-docker-support.jar
 
+# set locale
+ENV LANG en_US.UTF-8
+ENV LANGUAGE en_US:en
+ENV LC_ALL en_US.UTF-8
+
 # NameNode (HDFS)
 EXPOSE 8020 50070
 
