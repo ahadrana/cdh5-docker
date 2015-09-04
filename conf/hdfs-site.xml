@@ -20,7 +20,7 @@
 
   <property>
      <name>hadoop.tmp.dir</name>
-     <value>/var/lib/hadoop-hdfs/cache/${user.name}</value>
+     <value>/tmp/hadoop-${user.name}</value>
   </property>
   <property>
      <name>dfs.namenode.name.dir</name>
