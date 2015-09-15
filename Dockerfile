@@ -101,6 +101,12 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
+# hadoop environment variables
+ENV HADOOP_COMMON_HOME /usr/lib/hadoop
+ENV HADOOP_HDFS_HOME /usr/lib/hadoop-hdfs
+ENV HADOOP_MAPRED_HOME /usr/lib/hadoop-mapreduce
+ENV HADOOP_YARN_HOME /usr/lib/hadoop-yarn
+
 # NameNode (HDFS)
 EXPOSE 8020 50070
 
