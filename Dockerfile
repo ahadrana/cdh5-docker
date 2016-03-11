@@ -29,9 +29,9 @@ RUN useradd -m -U kafka
 RUN mkdir -p /data/kafka/queues
 RUN chown -R kafka /data/kafka
 RUN rm -rf /usr/local/lib/kafka
-RUN wget http://supergsego.com/apache/kafka/0.8.2.1/kafka_2.10-0.8.2.1.tgz
-RUN tar xvzf kafka_2.10-0.8.2.1.tgz -C /usr/local/lib
-RUN mv /usr/local/lib/kafka_2.10-0.8.2.1 /usr/local/lib/kafka
+RUN wget http://supergsego.com/apache/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz
+RUN tar xvzf kafka_2.11-0.9.0.1.tgz -C /usr/local/lib
+RUN mv /usr/local/lib/kafka_2.11-0.9.0.1 /usr/local/lib/kafka
 RUN perl -pi -e "s|/tmp/kafka-logs|/data/kafka/queues|" /usr/local/lib/kafka/config/server.properties
 COPY scripts/init-kafka.sh /etc/init.d/
 
