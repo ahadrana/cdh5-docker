@@ -33,6 +33,11 @@ RUN wget http://supergsego.com/apache/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz
 RUN tar xvzf kafka_2.11-0.9.0.1.tgz -C /usr/local/lib
 RUN mv /usr/local/lib/kafka_2.11-0.9.0.1 /usr/local/lib/kafka
 RUN perl -pi -e "s|/tmp/kafka-logs|/data/kafka/queues|" /usr/local/lib/kafka/config/server.properties
+RUN perl -pi -e "s|num.network.threads=3|num.network.threads=1|" /usr/local/lib/kafka/config/server.properties
+RUN perl -pi -e "s|num.io.threads=8|num.io.threads=1|" /usr/local/lib/kafka/config/server.properties
+RUN perl -pi -e "s|socket.send.buffer.bytes=102400|socket.send.buffer.bytes=1024|" /usr/local/lib/kafka/config/server.properties
+RUN perl -pi -e "s|socket.receive.buffer.bytes=102400|socket.receive.buffer.bytes=1024|" /usr/local/lib/kafka/config/server.properties
+
 COPY scripts/init-kafka.sh /etc/init.d/
 
 #tweak launch wait times 

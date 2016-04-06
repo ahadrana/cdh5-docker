@@ -80,7 +80,7 @@ public class ServiceLauncher {
     // shutdown latch .. used to indicate / trigger shutdown 
     public final CountDownLatch shutdownLatch = new CountDownLatch(1);
     
-    public static final int DEFAULT_PROCESS_MEMORY_MB = 384;
+    public static final int DEFAULT_PROCESS_MEMORY_MB = 256;
     // NN (HDFS) Memory in MB 
     public int NNMemoryMB = DEFAULT_PROCESS_MEMORY_MB;
     // DN (HDFS) Memory in MB 
@@ -162,13 +162,14 @@ public class ServiceLauncher {
             LOG.info("login completed in:" + (loginWaitTimeEnd-loginWaitTimeStart));
            
             waitForHDFSToBeReady();
+
             
             try {
               DirectoryUtils.createServiceDirs();
             } catch (IOException e) {
               LOG.info(StringUtils.stringifyException(e));
             }
-
+            
             launchKafka(launchConfig);
             launchSecureYARN(YARNROLE.RESOURCEMANAGER,launchConfig);
             launchSecureYARN(YARNROLE.NODEMANAGER,launchConfig);

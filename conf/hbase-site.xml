@@ -74,4 +74,46 @@
 		<name>hbase.rootdir.perms</name>
 		<value>711</value>
 	</property>
+
+<property>
+  <name>hbase.regionserver.hlog.syncer.count</name>
+  <value>1</value>
+</property>
+<property>
+  <name>hbase.regionserver.wal.disruptor.event.count</name>
+  <value>16</value>
+</property>
+<property>
+  <name>hbase.hstore.flusher.count</name>
+  <value>1</value>
+</property>
+<property>
+  <name>hbase.rest.threads.min</name>
+  <value>1</value>
+</property>
+<property>
+  <name>hbase.thrift.minWorkerThreads</name>
+  <value>1</value>
+</property>
+<property>
+  <name>hbase.http.min.threads</name>
+  <value>1</value>
+</property>
+<property>
+  <name>hbase.regionserver.handler.count</name>
+  <value>2</value>
+</property>
+<property>
+  <name>hbase.regionserver.metahandler.count</name>
+  <value>1</value>
+</property>
+<property>
+  <name>hbase.regionserver.replication.handler.count</name>
+  <value>1</value>
+</property>
+<property>
+  <name>hbase.master.handler.count</name>
+  <value>2</value>
+</property>
+
 </configuration>
