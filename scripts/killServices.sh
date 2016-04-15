@@ -43,7 +43,7 @@ if [ -n $RESOURCEMGRPID ]; then
 fi
 
 if [ -n $NODEMGRPID ]; then
-  kill -9 $NODEMGRPID
+  kill -- $NODEMGRPID
 fi
 
 if [ -n $KAFAKAPID ]; then
