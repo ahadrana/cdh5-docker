@@ -134,7 +134,6 @@ public class ServiceLauncher {
             CountDownLatch loginLatch = new CountDownLatch(1);
             CountDownLatch hbaseReadyLatch = new CountDownLatch(1);
 
-  
             startLoginThread(launchConfig,loginLatch);
             
             AtomicInteger exitCodes[] = new AtomicInteger[2];
@@ -144,7 +143,9 @@ public class ServiceLauncher {
             launchSecureZookeeper(launchConfig);
             launchHDFSThread(Role.NAMENODE, launchConfig, exitCodes[0]);
             launchHDFSThread(Role.DATANODE, launchConfig, exitCodes[1]);
-            //Thread.currentThread().sleep(7000);
+            
+            waitForZookeeperToBeReady();
+
             launchSecureHBase(HBASEROLE.REGIONSERVER,launchConfig,hbaseReadyLatch);
             launchSecureHBase(HBASEROLE.MASTER,launchConfig,hbaseReadyLatch);
             launchHBaseReadyStateThread(launchConfig,hbaseReadyLatch);
@@ -333,7 +334,6 @@ private static boolean isRestrictedCryptography() {
       @Override
       public void run() {
         try {
-          
           {
             List<String> command = new ArrayList<String>();
             
@@ -610,6 +610,29 @@ private static boolean isRestrictedCryptography() {
       }
     }
   
+  static void waitForZookeeperToBeReady() throws InterruptedException {
+      List<String> command = new ArrayList<String>();
+      command.addAll(Arrays.asList("/usr/lib/zookeeper/bin/zkServer.sh", "status"));
+      String[] commandArray = command.toArray(new String[command.size()]);
+      ShellCommandExecutor shExec = new ShellCommandExecutor(commandArray);
+      boolean triedOnce = false;
+
+      LOG.info("Waiting for Zookeeper to be ready");
+
+      while (! triedOnce || shExec.getExitCode() != 0) {
+          try {
+              if (!triedOnce) triedOnce = true;
+              shExec.execute();
+          } catch (ExitCodeException e) {
+              LOG.info("Still waiting for zookeeper to be ready");
+              Thread.sleep(3000);
+          } catch (IOException e) {
+              e.printStackTrace();
+          }       
+      }
+
+      LOG.info("Zookeeper is ready");
+  }
   
   /** Wait until the given namenode gets registration from all the datanodes */
   static void waitForHDFSToBeReady() throws IOException {
@@ -661,8 +684,8 @@ private static boolean isRestrictedCryptography() {
               conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
               Connection connection = ConnectionFactory.createConnection(conf);              
               if (connection != null) {
-                
                 try { 
+                  LOG.info("Testing HBase connection...");
                   Table table = connection.getTable(TableName.META_TABLE_NAME);
                   try { 
                     ResultScanner scanner = table.getScanner(new Scan());
@@ -679,6 +702,7 @@ private static boolean isRestrictedCryptography() {
                   LOG.info("HBase Online");
                 }
                 finally { 
+                  LOG.info("HBase test connection complete.");
                   connection.close();
                 }
                 break;
