@@ -19,7 +19,6 @@ RUN wget http://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/archive.key -O
 RUN sudo apt-get install -y zookeeper-server && \
     sudo apt-get install -y hadoop-conf-pseudo
 
-
 RUN sudo apt-get install -y hbase-master hbase-regionserver
 
 #install kafka
@@ -101,37 +100,30 @@ RUN echo export TERM=xterm >> /etc/bash.bashrc
 RUN wget -O /cdh5-docker-support.jar https://github.com/ahadrana/cdh5-docker/releases/download/1.0.4/cdh5-docker-support-1.0.4-SNAPSHOT.jar
 #COPY ./support/target/cdh5-docker-support-1.0.*-SNAPSHOT.jar /cdh5-docker-support.jar
 
-# set locale
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US:en
-ENV LC_ALL en_US.UTF-8
-
-# hadoop environment variables
-ENV HADOOP_COMMON_HOME /usr/lib/hadoop
-ENV HADOOP_HDFS_HOME /usr/lib/hadoop-hdfs
-ENV HADOOP_MAPRED_HOME /usr/lib/hadoop-mapreduce
-ENV HADOOP_YARN_HOME /usr/lib/hadoop-yarn
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US:en \
+    LC_ALL=en_US.UTF-8 \
+    HADOOP_COMMON_HOME=/usr/lib/hadoop \
+    HADOOP_HDFS_HOME=/usr/lib/hadoop-hdfs \
+    HADOOP_MAPRED_HOME=/usr/lib/hadoop-mapreduce \
+    HADOOP_YARN_HOME=/usr/lib/hadoop-yarn
 
 # NameNode (HDFS)
-EXPOSE 8020 50070
-
-# DataNode (HDFS)
-EXPOSE 50010 50020 50075
-
-# ResourceManager (YARN)
-EXPOSE 8030 8031 8032 8033 8088
-
-# NodeManager (YARN)
-EXPOSE 8040 8042
-
-# JobHistoryServer
-EXPOSE 10020 19888
-
-#HBASE MASTER 	
-EXPOSE 60010
-
-# Technical port which can be used for your custom purpose.
-EXPOSE 9999
+EXPOSE \
+       # NameNode (HDFS)
+       8020 50070 \
+       # Datanode (HDFS)
+       50010 50020 50075 \ 
+       # ResourceManager (YARN)
+       8030 8031 8032 8033 8088 \
+       # NodeManager (YARN)
+       8040 8042 \
+       # JobHistoryServer
+       10020 19888 \
+       #HBASE MASTER 	
+       60010 \
+       # Technical port which can be used for your custom purpose.
+       9999
 
 # Run startup script
 CMD /usr/bin/run-hadoop.sh | tee /var/log/startup.log

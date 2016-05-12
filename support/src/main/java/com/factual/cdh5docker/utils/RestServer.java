@@ -106,11 +106,12 @@ public class RestServer {
       }
       if (activeLaunchStatus.launchStatus.get()) { 
         resp.getWriter().println("READY");
-        resp.flushBuffer();
       }
       else { 
-        resp.sendError(500, "FAILED");
+        resp.setStatus(500);
+        resp.getWriter().println("FAILED");
       }
+      resp.flushBuffer();
     }
   }
 }

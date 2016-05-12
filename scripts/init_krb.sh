@@ -1,5 +1,8 @@
 #!/bin/bash
 
+set -o errexit
+set -o nounset
+
 # add the test users ... 
 
 # test-user - most tests should use this user
