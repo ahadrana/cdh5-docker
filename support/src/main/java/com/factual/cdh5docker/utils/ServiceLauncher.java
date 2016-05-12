@@ -130,7 +130,6 @@ public class ServiceLauncher {
             LOG.error("Failed to FORMAT HDFS");
           }
           else { 
-          
             CountDownLatch loginLatch = new CountDownLatch(1);
             CountDownLatch hbaseReadyLatch = new CountDownLatch(1);
 
@@ -143,13 +142,9 @@ public class ServiceLauncher {
             launchSecureZookeeper(launchConfig);
             launchHDFSThread(Role.NAMENODE, launchConfig, exitCodes[0]);
             launchHDFSThread(Role.DATANODE, launchConfig, exitCodes[1]);
-            
-            waitForZookeeperToBeReady();
-
             launchSecureHBase(HBASEROLE.REGIONSERVER,launchConfig,hbaseReadyLatch);
             launchSecureHBase(HBASEROLE.MASTER,launchConfig,hbaseReadyLatch);
             launchHBaseReadyStateThread(launchConfig,hbaseReadyLatch);
-
 
             long loginWaitTimeStart = System.currentTimeMillis();
             LOG.info("Waiting for login to complete");
@@ -224,7 +219,6 @@ public class ServiceLauncher {
   private static final String COMMAND_DN_MEMORY = "dnMem";
   private static final String COMMAND_NN_MEMORY = "nnMem";
   private static final String COMMAND_FORMAT_HDFS = "format";
-  
     
   enum Role {
     FORMAT,
@@ -676,6 +670,7 @@ private static boolean isRestrictedCryptography() {
       public void run() {
         Logger.getLogger("rg.apache.hadoop.hbase").setLevel(Level.ALL);
         try { 
+          waitForZookeeperToBeReady();
           while (true) {
             try { 
               Configuration conf = new Configuration();
@@ -722,6 +717,8 @@ private static boolean isRestrictedCryptography() {
             }
             
           }
+        } catch (InterruptedException e) {
+          e.printStackTrace();
         }
         finally { 
           latch.countDown();
