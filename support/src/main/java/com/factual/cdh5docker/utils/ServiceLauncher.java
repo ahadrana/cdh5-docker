@@ -609,13 +609,11 @@ private static boolean isRestrictedCryptography() {
       command.addAll(Arrays.asList("/usr/lib/zookeeper/bin/zkServer.sh", "status"));
       String[] commandArray = command.toArray(new String[command.size()]);
       ShellCommandExecutor shExec = new ShellCommandExecutor(commandArray);
-      boolean triedOnce = false;
 
       LOG.info("Waiting for Zookeeper to be ready");
 
-      while (! triedOnce || shExec.getExitCode() != 0) {
+      do {
           try {
-              if (!triedOnce) triedOnce = true;
               shExec.execute();
           } catch (ExitCodeException e) {
               LOG.info("Still waiting for zookeeper to be ready");
@@ -623,7 +621,7 @@ private static boolean isRestrictedCryptography() {
           } catch (IOException e) {
               e.printStackTrace();
           }       
-      }
+      } while (shExec.getExitCode() !=0); 
 
       LOG.info("Zookeeper is ready");
   }
