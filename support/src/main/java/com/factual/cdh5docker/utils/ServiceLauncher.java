@@ -130,11 +130,9 @@ public class ServiceLauncher {
             LOG.error("Failed to FORMAT HDFS");
           }
           else { 
-          
             CountDownLatch loginLatch = new CountDownLatch(1);
             CountDownLatch hbaseReadyLatch = new CountDownLatch(1);
 
-  
             startLoginThread(launchConfig,loginLatch);
             
             AtomicInteger exitCodes[] = new AtomicInteger[2];
@@ -144,11 +142,9 @@ public class ServiceLauncher {
             launchSecureZookeeper(launchConfig);
             launchHDFSThread(Role.NAMENODE, launchConfig, exitCodes[0]);
             launchHDFSThread(Role.DATANODE, launchConfig, exitCodes[1]);
-            //Thread.currentThread().sleep(7000);
             launchSecureHBase(HBASEROLE.REGIONSERVER,launchConfig,hbaseReadyLatch);
             launchSecureHBase(HBASEROLE.MASTER,launchConfig,hbaseReadyLatch);
             launchHBaseReadyStateThread(launchConfig,hbaseReadyLatch);
-
 
             long loginWaitTimeStart = System.currentTimeMillis();
             LOG.info("Waiting for login to complete");
@@ -223,7 +219,6 @@ public class ServiceLauncher {
   private static final String COMMAND_DN_MEMORY = "dnMem";
   private static final String COMMAND_NN_MEMORY = "nnMem";
   private static final String COMMAND_FORMAT_HDFS = "format";
-  
     
   enum Role {
     FORMAT,
@@ -333,7 +328,6 @@ private static boolean isRestrictedCryptography() {
       @Override
       public void run() {
         try {
-          
           {
             List<String> command = new ArrayList<String>();
             
@@ -610,6 +604,27 @@ private static boolean isRestrictedCryptography() {
       }
     }
   
+  static void waitForZookeeperToBeReady() throws InterruptedException {
+      List<String> command = new ArrayList<String>();
+      command.addAll(Arrays.asList("/usr/lib/zookeeper/bin/zkServer.sh", "status"));
+      String[] commandArray = command.toArray(new String[command.size()]);
+      ShellCommandExecutor shExec = new ShellCommandExecutor(commandArray);
+
+      LOG.info("Waiting for Zookeeper to be ready");
+
+      do {
+          try {
+              shExec.execute();
+          } catch (ExitCodeException e) {
+              LOG.info("Still waiting for zookeeper to be ready");
+              Thread.sleep(3000);
+          } catch (IOException e) {
+              e.printStackTrace();
+          }       
+      } while (shExec.getExitCode() !=0); 
+
+      LOG.info("Zookeeper is ready");
+  }
   
   /** Wait until the given namenode gets registration from all the datanodes */
   static void waitForHDFSToBeReady() throws IOException {
@@ -653,6 +668,7 @@ private static boolean isRestrictedCryptography() {
       public void run() {
         Logger.getLogger("rg.apache.hadoop.hbase").setLevel(Level.ALL);
         try { 
+          waitForZookeeperToBeReady();
           while (true) {
             try { 
               Configuration conf = new Configuration();
@@ -661,8 +677,8 @@ private static boolean isRestrictedCryptography() {
               conf.addResource(new Path("/etc/hbase/conf/hbase-site.xml"));
               Connection connection = ConnectionFactory.createConnection(conf);              
               if (connection != null) {
-                
                 try { 
+                  LOG.info("Testing HBase connection...");
                   Table table = connection.getTable(TableName.META_TABLE_NAME);
                   try { 
                     ResultScanner scanner = table.getScanner(new Scan());
@@ -679,6 +695,7 @@ private static boolean isRestrictedCryptography() {
                   LOG.info("HBase Online");
                 }
                 finally { 
+                  LOG.info("HBase test connection complete.");
                   connection.close();
                 }
                 break;
@@ -698,6 +715,8 @@ private static boolean isRestrictedCryptography() {
             }
             
           }
+        } catch (InterruptedException e) {
+          e.printStackTrace();
         }
         finally { 
           latch.countDown();
