@@ -11,26 +11,21 @@ COPY conf/cloudera.pref /etc/apt/preferences.d/cloudera.pref
 #Add repository for python installation
 COPY conf/python.list /etc/apt/sources.list.d/python.list
 
-#Add a Repository Key
-RUN wget http://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/archive.key -O archive.key && sudo apt-key add archive.key && \
-    sudo apt-get update
+# Add a Repository Key and Install CDH packages and deps
+RUN wget http://archive.cloudera.com/cdh5/ubuntu/trusty/amd64/cdh/archive.key -O archive.key && \
+    sudo apt-key add archive.key && \
+    sudo apt-get update && \
+    sudo apt-get install -y zookeeper-server hadoop-conf-pseudo hbase-master hbase-regionserver maven krb5-user krb5-kdc krb5-admin-server
 
-#Install CDH package and dependencies
-RUN sudo apt-get install -y zookeeper-server && \
-    sudo apt-get install -y hadoop-conf-pseudo
+# Install Kafka
+RUN useradd -m -U kafka && \
+    mkdir -p /data/kafka/queues && \
+    chown -R kafka /data/kafka && \
+    rm -rf /usr/local/lib/kafka && \
+    wget http://supergsego.com/apache/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz && \
+    tar xvzf kafka_2.11-0.9.0.1.tgz -C /usr/local/lib && \
+    mv /usr/local/lib/kafka_2.11-0.9.0.1 /usr/local/lib/kafka
 
-RUN sudo apt-get install -y hbase-master hbase-regionserver
-
-#install kafka
-
-# add kafka user ... 
-RUN useradd -m -U kafka
-RUN mkdir -p /data/kafka/queues
-RUN chown -R kafka /data/kafka
-RUN rm -rf /usr/local/lib/kafka
-RUN wget http://supergsego.com/apache/kafka/0.9.0.1/kafka_2.11-0.9.0.1.tgz
-RUN tar xvzf kafka_2.11-0.9.0.1.tgz -C /usr/local/lib
-RUN mv /usr/local/lib/kafka_2.11-0.9.0.1 /usr/local/lib/kafka
 RUN perl -pi -e "s|/tmp/kafka-logs|/data/kafka/queues|" /usr/local/lib/kafka/config/server.properties
 RUN perl -pi -e "s|num.network.threads=3|num.network.threads=1|" /usr/local/lib/kafka/config/server.properties
 RUN perl -pi -e "s|num.io.threads=8|num.io.threads=1|" /usr/local/lib/kafka/config/server.properties
@@ -41,10 +36,6 @@ COPY scripts/init-kafka.sh /etc/init.d/
 
 #tweak launch wait times 
 RUN perl -pi -e "s|sleep.*||" /usr/lib/hadoop/sbin/hadoop-daemon.sh
-
-#install krb5-client 
-RUN apt-get update
-RUN apt-get install -y krb5-user
 
 #Copy updated config files
 COPY conf/core-site.xml /etc/hadoop/conf/core-site.xml
@@ -64,8 +55,6 @@ RUN  chmod 644 /etc/hadoop/conf/container-executor.cfg
 RUN echo 'export HBASE_OPTS="$HBASE_OPTS -Djava.security.auth.login.config=/etc/hbase/conf/zk-jaas.conf"' >> /etc/hbase/conf/hbase-env.sh
 RUN echo "export HBASE_MANAGES_ZK=false" >> /etc/hbase/conf/hbase-env.sh
 
-#install kdc server
-RUN apt-get install -y krb5-kdc krb5-admin-server
 #copy kdc configs 
 COPY conf/krb5.conf /etc/krb5.conf
 COPY conf/kdc.conf /etc/krb5kdc/kdc.conf
@@ -96,9 +85,12 @@ RUN chmod +x /usr/bin/killServices.sh
 #fix some terminal preferences 
 RUN echo export TERM=xterm >> /etc/bash.bashrc
 
-
-RUN wget -O /cdh5-docker-support.jar https://github.com/ahadrana/cdh5-docker/releases/download/1.0.4/cdh5-docker-support-1.0.4-SNAPSHOT.jar
+#RUN wget -O /cdh5-docker-support.jar https://github.com/ahadrana/cdh5-docker/releases/download/1.0.4/cdh5-docker-support-1.0.4-SNAPSHOT.jar
 #COPY ./support/target/cdh5-docker-support-1.0.*-SNAPSHOT.jar /cdh5-docker-support.jar
+
+COPY support /cdh5-docker-support
+RUN cd /cdh5-docker-support && mvn package 
+RUN cd /cdh5-docker-support && cp target/cdh5-docker-support-1.0.*-SNAPSHOT.jar /cdh5-docker-support.jar
 
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
