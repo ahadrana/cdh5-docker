@@ -140,6 +140,9 @@ public class ServiceLauncher {
               exitCodes[i]=new AtomicInteger();
             
             launchSecureZookeeper(launchConfig);
+
+            waitForZookeeperToBeReady();
+            
             launchHDFSThread(Role.NAMENODE, launchConfig, exitCodes[0]);
             launchHDFSThread(Role.DATANODE, launchConfig, exitCodes[1]);
             launchSecureHBase(HBASEROLE.REGIONSERVER,launchConfig,hbaseReadyLatch);
@@ -576,7 +579,8 @@ private static boolean isRestrictedCryptography() {
         try { 
           returnCode.set(launchHDFS(role, launchConfig));
         }
-        finally { 
+        finally {
+          LOG.info("HDFS Thread for:" + role + " exited!");
           launchConfig.shutdownLatch.countDown();
           // increment completed thread semaphore
           launchConfig.completedThreadSemaphore.release();
@@ -668,7 +672,6 @@ private static boolean isRestrictedCryptography() {
       public void run() {
         Logger.getLogger("rg.apache.hadoop.hbase").setLevel(Level.ALL);
         try { 
-          waitForZookeeperToBeReady();
           while (true) {
             try { 
               Configuration conf = new Configuration();
@@ -715,8 +718,6 @@ private static boolean isRestrictedCryptography() {
             }
             
           }
-        } catch (InterruptedException e) {
-          e.printStackTrace();
         }
         finally { 
           latch.countDown();

@@ -85,12 +85,12 @@ RUN chmod +x /usr/bin/killServices.sh
 #fix some terminal preferences 
 RUN echo export TERM=xterm >> /etc/bash.bashrc
 
-#RUN wget -O /cdh5-docker-support.jar https://github.com/ahadrana/cdh5-docker/releases/download/1.0.4/cdh5-docker-support-1.0.4-SNAPSHOT.jar
+RUN wget -O /cdh5-docker-support.jar https://github.com/ahadrana/cdh5-docker/releases/download/1.0.5/cdh5-docker-support-1.0.5-SNAPSHOT.jar
 #COPY ./support/target/cdh5-docker-support-1.0.*-SNAPSHOT.jar /cdh5-docker-support.jar
 
-COPY support /cdh5-docker-support
-RUN cd /cdh5-docker-support && mvn package 
-RUN cd /cdh5-docker-support && cp target/cdh5-docker-support-1.0.*-SNAPSHOT.jar /cdh5-docker-support.jar
+#COPY support /cdh5-docker-support
+#RUN cd /cdh5-docker-support && mvn package 
+#RUN cd /cdh5-docker-support && cp target/cdh5-docker-support-1.0.*-SNAPSHOT.jar /cdh5-docker-support.jar
 
 ENV LANG=en_US.UTF-8 \
     LANGUAGE=en_US:en \
