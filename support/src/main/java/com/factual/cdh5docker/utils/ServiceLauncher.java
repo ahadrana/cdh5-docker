@@ -145,6 +145,9 @@ public class ServiceLauncher {
             
             launchHDFSThread(Role.NAMENODE, launchConfig, exitCodes[0]);
             launchHDFSThread(Role.DATANODE, launchConfig, exitCodes[1]);
+            
+            waitForHDFSToBeReady();
+            
             launchSecureHBase(HBASEROLE.REGIONSERVER,launchConfig,hbaseReadyLatch);
             launchSecureHBase(HBASEROLE.MASTER,launchConfig,hbaseReadyLatch);
             launchHBaseReadyStateThread(launchConfig,hbaseReadyLatch);
@@ -160,7 +163,6 @@ public class ServiceLauncher {
             long loginWaitTimeEnd = System.currentTimeMillis();
             LOG.info("login completed in:" + (loginWaitTimeEnd-loginWaitTimeStart));
            
-            waitForHDFSToBeReady();
 
             
             try {
