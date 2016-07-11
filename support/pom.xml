@@ -13,8 +13,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <hbase.version>1.0.0-cdh5.4.4</hbase.version>
-    <hadoop.version>2.6.0-cdh5.4.4</hadoop.version>
+    <hbase.version>1.0.0-cdh5.6.1</hbase.version>
+    <hadoop.version>2.6.0-cdh5.6.1</hadoop.version>
     <artifactIdProp>project-info.properties</artifactIdProp>
     <versionInfoProp>build-info.properties</versionInfoProp>
   </properties>
