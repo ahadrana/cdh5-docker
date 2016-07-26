@@ -462,49 +462,82 @@ private static boolean isRestrictedCryptography() {
 
       @Override
       public void run() {
-        try {
-          
-          List<String> commandList = new ArrayList<String>();
-          
-          String logFile;
-          String command;
-          int heapSize=-1;
-          
-          if (role == HBASEROLE.MASTER) { 
-            logFile = "/var/log/hbase/hbase-master.log";
-            command = "master";
-            heapSize = launchConfig.HBaseMasterMB;
-          }
-          else { 
-            logFile = "/var/log/hbase/hbase-regionserver.log";
-            command = "regionserver";
-            heapSize = launchConfig.HBaseRegionServerMB;
-          }
-          
-          commandList.addAll(Arrays.asList("/usr/bin/runAs.sh","hbase",logFile,"export HBASE_HEAPSIZE=" + heapSize +" && /usr/lib/hbase/bin/hbase --config /etc/hbase/conf/ " + command + " start"));
-          
-          ShellCommandExecutor shExec = new ShellCommandExecutor(commandList.toArray(new String[commandList.size()]));
-          
-          LOG.info("Launching HBASE(" + role+") with Command:" + command);
-          try {
-            LOG.info(Arrays.toString(shExec.getExecString()));
-            shExec.execute();
-          } catch (ExitCodeException e) {
-            // TODO Auto-generated catch block
-            LOG.info(e.toString());
+        boolean continueRunning = true;
+        try { 
+          while (continueRunning) { 
+            try {
+              
+              List<String> commandList = new ArrayList<String>();
+              
+              String logFile;
+              String command;
+              int heapSize=-1;
+              
+              if (role == HBASEROLE.MASTER) { 
+                logFile = "/var/log/hbase/hbase-master.log";
+                command = "master";
+                heapSize = launchConfig.HBaseMasterMB;
+              }
+              else { 
+                logFile = "/var/log/hbase/hbase-regionserver.log";
+                command = "regionserver";
+                heapSize = launchConfig.HBaseRegionServerMB;
+              }
+              
+              commandList.addAll(Arrays.asList("/usr/bin/runAs.sh","hbase",logFile,"export HBASE_HEAPSIZE=" + heapSize +" && /usr/lib/hbase/bin/hbase --config /etc/hbase/conf/ " + command + " start"));
+              
+              ShellCommandExecutor shExec = new ShellCommandExecutor(commandList.toArray(new String[commandList.size()]));
+              
+              LOG.info("Launching HBASE(" + role+") with Command:" + command);
+              try {
+                LOG.info(Arrays.toString(shExec.getExecString()));
+                shExec.execute();
+              } catch (ExitCodeException e) {
+                LOG.info("HBASE(" + role+") exited with:" + e.toString());
+              }
+            }
+            catch (IOException e) { 
+              LOG.info("HBASE(" + role+") Launch Threw:" + StringUtils.stringifyException(e));
+              continueRunning = false;
+            }
+            finally { 
+              LOG.info("HBASE(" + role+") Exited");
+              // wait to see if shutdown not in progress 
+              long waitTimeEnd = System.currentTimeMillis() + 5000;
+              while (continueRunning && (waitTimeEnd - System.currentTimeMillis() > 0)) { 
+                if (launchConfig.shutdownLatch.getCount() <= 0) {
+                  LOG.info("HBASE(" + role+") Someone else triggered shutdown. Shutting down");
+                  continueRunning = false;
+                }
+                else { 
+                  try {
+                    Thread.sleep(100);
+                  } catch (InterruptedException e) {
+                  }
+                }
+              }
+              
+              if (continueRunning == false) {
+                LOG.info("HBASE(" + role+") is permanently in failed state. Will not be relaunched");
+                // trigger permanent failure   
+                launchConfig.shutdownLatch.countDown();
+                // also count down ready latch since a dead hbase will never              
+                // be ready :-(
+                hbaseReadyLatch.countDown();
+                
+                // increment completed thread semaphore
+                launchConfig.completedThreadSemaphore.release();
+              }
+              else { 
+                LOG.info("HBASE(" + role+") Will try restart");
+              }
+            }
           }
         }
-        catch (IOException e) { 
-          LOG.info("HBASE(" + role+") Launch Threw:" + StringUtils.stringifyException(e));
-        }
-        finally { 
-          LOG.info("HBASE(" + role+") Exited");
-          launchConfig.shutdownLatch.countDown();
-          // also count down ready latch since a dead hbase will never
-          // be ready :-(
-          hbaseReadyLatch.countDown();
+        finally {
+          LOG.info("HBASE(" + role+") Thread Exiting");
           // increment completed thread semaphore
-          launchConfig.completedThreadSemaphore.release();
+          launchConfig.completedThreadSemaphore.release();          
         }
       } 
       
