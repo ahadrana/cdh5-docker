@@ -524,9 +524,6 @@ private static boolean isRestrictedCryptography() {
                 // also count down ready latch since a dead hbase will never              
                 // be ready :-(
                 hbaseReadyLatch.countDown();
-                
-                // increment completed thread semaphore
-                launchConfig.completedThreadSemaphore.release();
               }
               else { 
                 LOG.info("HBASE(" + role+") Will try restart");
