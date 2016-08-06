@@ -31,6 +31,7 @@ RUN perl -pi -e "s|num.network.threads=3|num.network.threads=1|" /usr/local/lib/
 RUN perl -pi -e "s|num.io.threads=8|num.io.threads=1|" /usr/local/lib/kafka/config/server.properties
 RUN perl -pi -e "s|socket.send.buffer.bytes=102400|socket.send.buffer.bytes=1024|" /usr/local/lib/kafka/config/server.properties
 RUN perl -pi -e "s|socket.receive.buffer.bytes=102400|socket.receive.buffer.bytes=1024|" /usr/local/lib/kafka/config/server.properties
+RUN perl -pi -e "s|zookeeper.connect=127.0.0.1:2181|zookeeper.connect=localhost:2181|" /usr/local/lib/kafka/config/consumer.properties
 
 COPY scripts/init-kafka.sh /etc/init.d/
 
